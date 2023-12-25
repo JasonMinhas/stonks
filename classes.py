@@ -54,4 +54,6 @@ class StockDataFrameClass:
             temp_value = temp_value + (temp_value * alt_return_pct)
             temp_df.at[index, 'alt_close'] = temp_value
 
+        # todo objective is to be able to insert multiple days. Create a veriable that names is based on date and days filter like this 'alt_df_1962-01-02_to_2023-12-22_remove_best_X'
+        # todo is it best practice to iterate through and create multiple classes
         self.df = temp_df
