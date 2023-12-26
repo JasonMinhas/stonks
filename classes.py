@@ -2,7 +2,8 @@ import pandas as pd
 import general_functions as gf
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 def get_data(ticker):
@@ -66,11 +67,14 @@ class StockDataFrameClass:
         # https://medium.com/swlh/python-dataclasses-with-properties-and-pandas-5c59b05e9131
         self.df = temp_df
 
-
+@dataclass
 class StockData():
     ticker: str
     start_date: str
     end_date: str
+    has_skipped_days: bool
+    number_of_days_to_skip: Optional[int] = None
+    # todo property that identifies whther this is the orginal data or it has been changed
     # todo add optional parameter to simulate skipping bext x days
 
     def periods_year(self) -> int:
@@ -82,10 +86,12 @@ class StockData():
 
     # todo create method to simulate skipping best x days
 
-    def __init__(self, ticker: str, start_date: str, end_date: str):
-        self.ticker = ticker
-        self.start_date = start_date  # todo turn to datetime
-        self.end_date = end_date  # todo turn to datetime
+    # def __init__(self, ticker: str, start_date: str, end_date: str):
+    #     self.ticker = ticker
+    #     self.start_date = start_date  # todo turn to datetime
+    #     self.end_date = end_date  # todo turn to datetime
+    #     self.has_skipped_days = False
+
 
 
 @dataclass
