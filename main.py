@@ -64,4 +64,6 @@ def visualize_stock_df(hist_stock):
 
 
 if __name__ == "__main__":
+    item = sc.InventoryItem('test', 10, 5)
+
     main()

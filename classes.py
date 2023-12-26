@@ -2,6 +2,7 @@ import pandas as pd
 import general_functions as gf
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
+from dataclasses import dataclass
 
 
 def get_data(ticker):
@@ -25,7 +26,6 @@ class StockDataFrameClass:
         self.df = clean_stock_data(get_data(ticker))
         self.start_date = min(self.df['date'])
         self.end_date = max(self.df['date'])
-
 
     def get_year_periods(self):
         year_periods = relativedelta(self.end_date, self.start_date).years
@@ -63,4 +63,43 @@ class StockDataFrameClass:
 
         # todo objective is to be able to insert multiple days. Create a veriable that names is based on date and days filter like this 'alt_df_1962-01-02_to_2023-12-22_remove_best_X'
         # todo is it best practice to iterate through and create multiple classes
+        # https://medium.com/swlh/python-dataclasses-with-properties-and-pandas-5c59b05e9131
         self.df = temp_df
+
+
+class StockData():
+    ticker: str
+    start_date: str
+    end_date: str
+    # todo add optional parameter to simulate skipping bext x days
+
+    def periods_year(self) -> int:
+        return self.end_date - self.start_date
+
+    # todo create a method that calculates return
+
+    # todo create a method that calculates annualized return
+
+    # todo create method to simulate skipping best x days
+
+    def __init__(self, ticker: str, start_date: str, end_date: str):
+        self.ticker = ticker
+        self.start_date = start_date  # todo turn to datetime
+        self.end_date = end_date  # todo turn to datetime
+
+
+@dataclass
+class InventoryItem:
+    """Class for keeping track of an item in inventory."""
+    name: str
+    unit_price: float
+    quantity_on_hand: int = 0
+
+    def total_cost(self) -> float:
+        return self.unit_price * self.quantity_on_hand
+
+
+def __init__(self, name: str, unit_price: float, quantity_on_hand: int = 0):
+    self.name = name
+    self.unit_price = unit_price
+    self.quantity_on_hand = quantity_on_hand
