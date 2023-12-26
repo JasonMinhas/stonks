@@ -8,35 +8,32 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    hist_stock = sc.StockDataFrameClass("PATH")
-    hist_stock = run_scenario(hist_stock)
-    visualize_stock_df(hist_stock)
+    StockData = sc.StockData(
+        'SPY',
+        dt.date(2008, 1, 1),
+        dt.date(2023, 12, 21)
+    )
+    run_scenario(StockData)
+    visualize_stock_df(StockData)
 
 
-def run_scenario(hist_stock):
-    # todo I want to be able to just enter the date in as a simple 'YYYY-MM-DD' format
-    # hist_stock.start_date = dt.datetime(2008, 1, 1).astimezone()
-    # hist_stock.end_date = dt.datetime(2023, 12, 21).astimezone()
-
-    hist_stock.add_column_for_best_x_days(10, hist_stock.start_date, hist_stock.end_date)
-    hist_stock.year_periods = hist_stock.get_year_periods()
+def run_scenario(StockData):
+    StockData.get_close_series_with_best_x_days_removed(10)
 
     # original return calculations
-    hist_stock.return_pct = hist_stock.calculate_return('close', hist_stock.start_date, hist_stock.end_date)
-    hist_stock.annualized_return_pct = (1 + hist_stock.return_pct) ** (1 / hist_stock.year_periods) - 1
+    StockData.return_pct = StockData.get_return_pct()
+    StockData.annualized_return_pct = (1 + StockData.return_pct) ** (1 / StockData.periods_year) - 1
 
     # alternative return calculations
-    hist_stock.alt_return_pct = hist_stock.calculate_return('alt_close', hist_stock.start_date, hist_stock.end_date)
-    hist_stock.alt_annualized_return_pct = (1 + hist_stock.alt_return_pct) ** (1 / hist_stock.year_periods) - 1
-
-    return hist_stock
+    StockData.alt_return_pct = StockData.get_alt_return_pct()
+    StockData.alt_annualized_return_pct = (1 + StockData.alt_return_pct) ** (1 / StockData.periods_year) - 1
 
 
-def visualize_stock_df(hist_stock):
+def visualize_stock_df(StockData):
     # define series to be plotted
-    y_close_line = hist_stock.df['close']
-    y_alt_close_line = hist_stock.df['alt_close']
-    x = hist_stock.df['date']
+    y_close_line = StockData.stock_df['close']
+    y_alt_close_line = StockData.alt_stock_df['alt_close']
+    x = StockData.stock_df['date']
 
     # assign plot lines
     plt.plot(x, y_close_line)
@@ -53,10 +50,10 @@ def visualize_stock_df(hist_stock):
                      xycoords=('axes fraction', 'data'), textcoords='offset points')
 
     # annotate annualized close price
-    plt.annotate(format(hist_stock.annualized_return_pct, ".2%"), xy=(1, y_close_line.iloc[-1]), xytext=(8, -28),
+    plt.annotate(format(StockData.annualized_return_pct, ".2%"), xy=(1, y_close_line.iloc[-1]), xytext=(8, -28),
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
     # annotate alt annualized close price
-    plt.annotate(format(hist_stock.alt_annualized_return_pct, ".2%"), xy=(1, y_alt_close_line.iloc[-1]), xytext=(8, -28),
+    plt.annotate(format(StockData.alt_annualized_return_pct, ".2%"), xy=(1, y_alt_close_line.iloc[-1]), xytext=(8, -28),
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
 
     # todo highlight all the mismatch days. Show marker and percent label
@@ -64,6 +61,4 @@ def visualize_stock_df(hist_stock):
 
 
 if __name__ == "__main__":
-    item = sc.InventoryItem('test', 10, 5)
-
     main()
