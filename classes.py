@@ -1,6 +1,7 @@
 import pandas as pd
 import general_functions as gf
 import yfinance as yf
+from dateutil.relativedelta import relativedelta
 
 
 def get_data(ticker):
@@ -25,13 +26,19 @@ class StockDataFrameClass:
         self.start_date = min(self.df['date'])
         self.end_date = max(self.df['date'])
 
-    def calculate_return(self, start_date, end_date):
+
+    def get_year_periods(self):
+        year_periods = relativedelta(self.end_date, self.start_date).years
+
+        return year_periods
+
+    def calculate_return(self, close_or_clt_close, start_date, end_date):
         # filter for relevant timeframe
         temp_df = self.df[(self.df['date'] >= start_date) & (self.df['date'] <= end_date)]
         # take only first and last row which would be the min and max date
         temp_df = temp_df.iloc[[0, -1]]
         # find percentage difference between the min and max date
-        return_pct = temp_df['close'].pct_change()
+        return_pct = temp_df[close_or_clt_close].pct_change().iloc[-1]
 
         return return_pct
 
