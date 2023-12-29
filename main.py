@@ -2,7 +2,7 @@ import pandas as pd
 import general_functions as gf
 import datetime as dt
 import os
-import classes as sc
+import helper_classes_and_functions as sc
 import yfinance as yf
 import matplotlib.pyplot as plt
 
@@ -13,6 +13,8 @@ def main():
         dt.date(2008, 1, 1),
         dt.date(2023, 12, 21)
     )
+    scenario1 = sc.StockSimulator(StockData)
+
     run_scenario(StockData)
     visualize_stock_df(StockData)
 
