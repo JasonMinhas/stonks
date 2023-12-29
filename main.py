@@ -13,25 +13,25 @@ def main():
         dt.date(2008, 1, 1),
         dt.date(2023, 12, 21)
     )
-    scenario1 = sc.StockSimulator(StockData)
-
-    run_scenario(StockData)
-    visualize_stock_df(StockData)
+    list_of_scenarios = run_scenario(StockData)
+    visualize_stock_df(list_of_scenarios)
 
 
 def run_scenario(StockData):
-    StockData.get_close_series_with_best_x_days_removed(10)
+    original = sc.StockSimulator(StockData)
+    best_10_days_removed = sc.StockSimulator(StockData).remove_best_x_days(10)
 
-    # original return calculations
-    StockData.return_pct = StockData.get_return_pct()
-    StockData.annualized_return_pct = (1 + StockData.return_pct) ** (1 / StockData.periods_year) - 1
+    list_of_scenarios = [original, best_10_days_removed]
 
-    # alternative return calculations
-    StockData.alt_return_pct = StockData.get_alt_return_pct()
-    StockData.alt_annualized_return_pct = (1 + StockData.alt_return_pct) ** (1 / StockData.periods_year) - 1
+    return list_of_scenarios
 
 
-def visualize_stock_df(StockData):
+def visualize_stock_df(list_of_scn):
+    x = list_of_scn[0].stock_df['date']
+
+    # for scn in list_of_scenarios:
+
+
     # define series to be plotted
     y_close_line = StockData.stock_df['close']
     y_alt_close_line = StockData.alt_stock_df['alt_close']

@@ -7,11 +7,12 @@ from dateutil.relativedelta import relativedelta
 from typing import Optional
 
 @dataclass
-class StockData():
+class StockData:
     ticker: str
     start_date: dt.date
     end_date: dt.date
     stock_df: Optional[pd.DataFrame] = None
+
 
     def get_stock_data(self):
         stock_ticker = yf.Ticker(self.ticker)
@@ -25,64 +26,79 @@ class StockData():
         self.stock_df = gf.strip_df(self.stock_df)
         self.stock_df['date'] = pd.to_datetime(self.stock_df['date']).dt.date
 
-    # todo need a way to filter df to specific timeframe
+    # Filter df to specific timeframe
+    def filter_stock_df(self):
+        self.stock_df = self.stock_df[
+            (self.stock_df['date'] >= self.start_date)
+            & (self.stock_df['date'] <= self.end_date)
+            ]
+
+    def periods_year(self):
+        # Get periods in years
+        self.periods_year = relativedelta(self.end_date, self.start_date).years
+
 
     def __post_init__(self):
         # get stock data
         self.get_stock_data()
         # clean stock data
         self.clean_stock_df()
-
+        # filter stock data by date
+        self.filter_stock_df()
+        # get periods in years
+        self.periods_year()
 
 
 @dataclass
-class StockSimulator(best_x_days=0, worst_x_days=0):
+#  merge this class into the original and add a original attribute
+class StockSimulator:
     StockData: StockData
-    periods_year: Optional[pd.DataFrame] = None
-    return_pct: Optional[pd.DataFrame] = None
-    annualized_return_pct: Optional[pd.DataFrame] = None
-
-    def periods_year(self) -> int:
-        return relativedelta(self.end_date, self.start_date).years
+    description: Optional[str] = 'This is the original dataset.'
+    return_pct: Optional[float] = None
+    annualized_return_pct: Optional[float] = None
 
     # Calculate return percentage
     def get_return_pct(self) -> float:
         # take only first and last row which would be the min and max date
-        first_and_last_rows = self.stock_df.iloc[[0, -1]]
+        first_and_last_rows = self.StockData.stock_df.iloc[[0, -1]]
         # find percentage difference between the min and max date
-        return_pct = first_and_last_rows['close'].pct_change().iloc[-1]
-
-        return return_pct
+        self.return_pct = first_and_last_rows['close'].pct_change().iloc[-1]
 
     # Calculate annualized return percentage
     def get_annualized_return_pct(self) -> float:
-        self.stock_df.annualized_return_pct = (1 + self.stock_df.return_pct) ** (1 / self.periods_year) - 1
+        self.annualized_return_pct = (1 + self.return_pct) ** (1 / self.StockData.periods_year) - 1
 
     # Create df to simulate skipping best x days
-    def get_close_series_with_best_x_days_removed(self, number_of_days_to_remove):
-        # create alt DataFrame that will hold new returns_pct_vs_prev_day and close values
-        self.alt_stock_df = self.stock_df[['date', 'returns_pct_vs_prev_day']]
-        self.alt_stock_df = self.alt_stock_df.add_prefix('alt_')
+    def remove_best_x_days(self, number_of_days_to_remove):
+        self.description = f'This scenario simulates removing the best performing {number_of_days_to_remove} days.'
+
         # Get indices of top x rows
-        self.top_x_indices_removed = self.alt_stock_df.nlargest(number_of_days_to_remove,
-                                                                'alt_returns_pct_vs_prev_day').index
+        self.best_x_indices = self.StockData.stock_df.nlargest(number_of_days_to_remove,
+                                                                'return_pct_vs_prev_day').index
         # replace top x indices with 0 and store in alternate series
-        self.alt_stock_df.loc[self.top_x_indices_removed, 'alt_returns_pct_vs_prev_day'] = 0
+        self.StockData.stock_df.loc[self.best_x_indices, 'return_pct_vs_prev_day'] = 0
 
         # calculate alternate close price
-        temp_value = self.stock_df.iloc[0]['close']
-        for index, row in self.stock_df.iterrows():
-            # if index is in top 10 index then  0 pct
-            # Else use original pct
+        temp_close_value = self.StockData.stock_df.iloc[0]['close']
+        for index, row in self.StockData.stock_df.iterrows():
+            new_return_pct = row['return_pct_vs_prev_day']
+            temp_close_value = temp_close_value + (temp_close_value * new_return_pct)
+            self.StockData.stock_df.at[index, 'close'] = temp_close_value
 
-            alt_return_pct = row['alt_returns_pct_vs_prev_day']
-            temp_value = temp_value + (temp_value * alt_return_pct)
-            self.alt_stock_df.at[index, 'alt_close'] = temp_value
+        # Update attributes since the close prices have been updated
+        self.update_attributes()
 
-    def __post_init__(self): # todo run this everytime df get updated
-        # Get periods in years
-        self.StockData.periods_year = relativedelta(self.StockData.end_date, self.StockData.start_date).years
+        return self
 
+    def update_attributes(self):
+        # get return percentage
+        self.get_return_pct()
+
+        # get annualized return percentage
+        self.get_annualized_return_pct()
+
+
+    def __post_init__(self):
         # check if end date is after start date
         if self.StockData.periods_year < 0:
             raise ValueError(
@@ -91,4 +107,6 @@ class StockSimulator(best_x_days=0, worst_x_days=0):
         # get return percentage compared to previous day
         self.StockData.stock_df['return_pct_vs_prev_day'] = self.StockData.stock_df['close'].pct_change().fillna(0)
 
-        print('sdss')
+        # Update attributes
+        self.update_attributes()
+
