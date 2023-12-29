@@ -13,14 +13,15 @@ def main():
         dt.date(2008, 1, 1),
         dt.date(2023, 12, 21)
     )
-    list_of_scenarios = run_scenario(StockData)
+    merged_scenario_df = generate_scenarios(StockData)
     visualize_stock_df(list_of_scenarios)
 
 
-def run_scenario(StockData):
+def generate_scenarios(StockData):
     original = sc.StockSimulator(StockData)
     best_10_days_removed = sc.StockSimulator(StockData).remove_best_x_days(10)
 
+    # todo merge scenario so that they are one df that can be visualized
     list_of_scenarios = [original, best_10_days_removed]
 
     return list_of_scenarios
