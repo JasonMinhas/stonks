@@ -27,8 +27,6 @@ def generate_scenarios(ticker, start_date, end_date, number_of_days_to_remove):
 
 
 def visualize_stock_df(original_scn, best_x_days_removed_scn):
-    
-    
     # define series to be plotted
     y_og_close_line = original_scn.stock_df['close']
     y_scn_close_line = best_x_days_removed_scn.stock_df['close']
@@ -59,6 +57,7 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
         f'{original_scn.ticker} comparison between original Close and missing the best {number_of_days_removed} return days removed for a {original_scn.periods_year} year period')
 
     # annotate starting price
+    # todo find a way to shift line to start slightly to the right so there will always be room to left of start line to add starting price
     plt.annotate('$'+'%0.2f' % y_og_close_line.iloc[0], xy=(0, y_og_close_line.iloc[0]), xytext=(8, 0),
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
 
