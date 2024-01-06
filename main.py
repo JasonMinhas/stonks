@@ -6,7 +6,9 @@ import helper_classes_and_functions as sc
 import yfinance as yf
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import (AnnotationBbox, DrawingArea, OffsetImage, TextArea)
+from matplotlib.ticker import (MultipleLocator,
+                               FormatStrFormatter,
+                               AutoMinorLocator)
 
 
 def main():
@@ -33,49 +35,75 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
     x = original_scn.stock_df['date']
     number_of_days_removed = best_x_days_removed_scn.best_x_indices.size
 
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, (close_line_ax, table_ax) = plt.subplots(nrows=2, ncols=1, figsize=(14, 8))
 
-    # assign plot lines and add legend
-    og_line = plt.plot(x, y_og_close_line, label='Original')
-    scn_line = plt.plot(x, y_scn_close_line, label=f'Missing Best {number_of_days_removed} Days')
-    og_legend = plt.legend(handles=og_line, bbox_to_anchor=[1, 1], loc='upper left')
-    plt.gca().add_artist(og_legend)
-    plt.legend(handles=scn_line, bbox_to_anchor=[1, .5], loc='upper left')
+    # assign plot lines
+    og_line = close_line_ax.plot(x, y_og_close_line, label='Original')
+    scn_line = close_line_ax.plot(x, y_scn_close_line, label=f'Missing Best {number_of_days_removed} Days')
+
+    # add legends
+    og_legend = close_line_ax.legend(handles=og_line, bbox_to_anchor=[1, 1], loc='upper left')
+    close_line_ax.add_artist(og_legend)
+    close_line_ax.legend(handles=scn_line, bbox_to_anchor=[1, .5], loc='upper left')
 
     # define font dict for labels
     font1 = {'color': 'dimgray', 'size': 13}
 
     # format y axis label to currency
-    ax.yaxis.set_major_formatter('${x:1.0f}')
-    plt.ylabel("Closing Price", fontdict=font1)
+    close_line_ax.yaxis.set_major_formatter('${x:1.0f}')
+    close_line_ax.set_ylabel("Closing Price", fontdict=font1)
 
     # label axis
-    plt.xlabel("Date", fontdict=font1)
+    close_line_ax.set_xlabel("Date", fontdict=font1)
 
     # add title
-    plt.title(
-        f'{original_scn.ticker} comparison between original Close and missing the best {number_of_days_removed} return days removed for a {original_scn.periods_year} year period')
+    fig.suptitle(
+        f'{original_scn.ticker} comparison between original Close and missing the best {number_of_days_removed} '
+        f'return days removed for a {original_scn.periods_year} year period',
+        fontsize=16)
 
-    # annotate starting price
-    # todo find a way to shift line to start slightly to the right so there will always be room to left of start line to add starting price
-    plt.annotate('$'+'%0.2f' % y_og_close_line.iloc[0], xy=(0, y_og_close_line.iloc[0]), xytext=(8, 0),
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+    # # annotate starting price
+    # # todo find a way to shift line to start slightly to the right so there will always be room to left of start line to add starting price
+    # plt.annotate('$'+'%0.2f' % y_og_close_line.iloc[0], xy=(0, y_og_close_line.iloc[0]), xytext=(8, 0),
+    #              xycoords=('axes fraction', 'data'), textcoords='offset points')
+    #
+    # # add text for both close prices
+    # plt.text(1.01, .875, f"Last Close: ${'%0.2f' % y_og_close_line.iloc[-1]}", transform=ax.transAxes)
+    # plt.text(1.01, .375, f"Last Close: ${'%0.2f' % y_scn_close_line.iloc[-1]}", transform=ax.transAxes)
+    #
+    #
+    # # add text for both annualized return percent
+    # plt.text(1.01, .825, f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
+    #          transform=ax.transAxes)
+    # plt.text(1.01, .325, f"Annualized Return %: {format(best_x_days_removed_scn.annualized_return_pct, '.2%')}",
+    #          transform=ax.transAxes)
 
-    # add text for both close prices
-    plt.text(1.01, .875, f"Last Close: ${'%0.2f' % y_og_close_line.iloc[-1]}", transform=ax.transAxes)
-    plt.text(1.01, .375, f"Last Close: ${'%0.2f' % y_scn_close_line.iloc[-1]}", transform=ax.transAxes)
+    # format table axis
+    # remove axis for table visual
+    table_ax.axis("off")
 
+    # add title
+    table_ax.set_title(f'Best performing {number_of_days_removed} days')
 
-    # add text for both annualized return percent
-    plt.text(1.01, .825, f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
-             transform=ax.transAxes)
-    plt.text(1.01, .325, f"Annualized Return %: {format(best_x_days_removed_scn.annualized_return_pct, '.2%')}",
-             transform=ax.transAxes)
+    best_x_days_removed_df = original_scn.stock_df.loc[
+        best_x_days_removed_scn.best_x_indices,
+        ['date', 'close', 'return_pct_vs_prev_day']
+    ]
+    # format close price and return pct
+    best_x_days_removed_df['close'] = best_x_days_removed_df['close'].apply(lambda x: f"${x:1.2f}")
+    best_x_days_removed_df['return_pct_vs_prev_day'] = best_x_days_removed_df['return_pct_vs_prev_day'].apply(lambda x: '{:.2%}'.format(x))
 
-    # todo highlight all the mismatch days. Show marker and percent label
+    cell_text = []
+    for index, row in best_x_days_removed_df[['date', 'close', 'return_pct_vs_prev_day']].iterrows():
+        cell_text.append([x for x in row])
+    col_labels = ['Date', 'Close Price', 'Daily Return % Vs Previous Day']
+    table_ax.table(cellText=cell_text,
+                   colLabels=col_labels,
+                   loc='center'
+                   )
+
     plt.tight_layout()
     plt.show()
-
 
 
 if __name__ == "__main__":
