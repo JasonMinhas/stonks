@@ -13,9 +13,9 @@ from matplotlib.ticker import (MultipleLocator,
 
 def main():
     ticker = 'SPY'
-    start_date = dt.date(2021, 1, 1)
-    end_date = dt.date(2023, 12, 21)
-    number_of_days_to_remove = 5
+    start_date = dt.date(2008, 1, 1)
+    end_date = dt.date(2024, 1, 1)
+    number_of_days_to_remove = 10
 
     original_scn, best_x_days_removed_scn = generate_scenarios(ticker, start_date, end_date, number_of_days_to_remove)
     visualize_stock_df(original_scn, best_x_days_removed_scn)
@@ -40,8 +40,8 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
 
     # add title
     fig.suptitle(
-        f'{original_scn.ticker} comparison between original Close and missing the best {number_of_days_removed} '
-        f'return days removed for a {original_scn.periods_year} year period',
+        f'{original_scn.ticker} comparison between original Close Price and the Close Price when the best {number_of_days_removed} '
+        f'return days are missed for a {original_scn.periods_year} year period',
         fontsize=16)
 
     # assign plot lines
@@ -80,11 +80,20 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
 
     # add text for both annualized return percent
     close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.22,
-                       f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
+                       f"Total Return %: {format(original_scn.return_pct, '.2%')}",
                        transform=close_line_ax.transAxes)
     close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.72,
+                       f"Total Return %: {format(best_x_days_removed_scn.return_pct, '.2%')}",
+                       transform=close_line_ax.transAxes)
+
+    # add text for both annualized return percent
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.29,
+                       f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
+                       transform=close_line_ax.transAxes)
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.79,
                        f"Annualized Return %: {format(best_x_days_removed_scn.annualized_return_pct, '.2%')}",
                        transform=close_line_ax.transAxes)
+
 
     # format table axis
     # remove axis for table visual
