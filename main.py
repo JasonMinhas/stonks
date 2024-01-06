@@ -31,7 +31,7 @@ def generate_scenarios(ticker, start_date, end_date, number_of_days_to_remove):
 def visualize_stock_df(original_scn, best_x_days_removed_scn):
     # define series to be plotted
     y_og_close_line = original_scn.stock_df['close']
-    y_scn_close_line = best_x_days_removed_scn.stock_df['close'] #todo add circle label markers for the best X days
+    y_scn_close_line = best_x_days_removed_scn.stock_df['close']
     x = original_scn.stock_df['date']
     number_of_days_removed = best_x_days_removed_scn.best_x_indices.size
 
