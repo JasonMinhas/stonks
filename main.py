@@ -41,10 +41,13 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
     og_line = close_line_ax.plot(x, y_og_close_line, label='Original')
     scn_line = close_line_ax.plot(x, y_scn_close_line, label=f'Missing Best {number_of_days_removed} Days')
 
+    # set baseline bbox_to_anchor values
+    bbox_to_anchor_value = (1, 1)
+
     # add legends
-    og_legend = close_line_ax.legend(handles=og_line, bbox_to_anchor=[1, 1], loc='upper left')
+    og_legend = close_line_ax.legend(handles=og_line, bbox_to_anchor=[bbox_to_anchor_value[0], bbox_to_anchor_value[1]], loc='upper left')
     close_line_ax.add_artist(og_legend)
-    close_line_ax.legend(handles=scn_line, bbox_to_anchor=[1, .5], loc='upper left')
+    close_line_ax.legend(handles=scn_line, bbox_to_anchor=[bbox_to_anchor_value[0], bbox_to_anchor_value[1]-.5], loc='upper left')
 
     # define font dict for labels
     font1 = {'color': 'dimgray', 'size': 13}
@@ -62,21 +65,21 @@ def visualize_stock_df(original_scn, best_x_days_removed_scn):
         f'return days removed for a {original_scn.periods_year} year period',
         fontsize=16)
 
-    # # annotate starting price
-    # # todo find a way to shift line to start slightly to the right so there will always be room to left of start line to add starting price
-    # plt.annotate('$'+'%0.2f' % y_og_close_line.iloc[0], xy=(0, y_og_close_line.iloc[0]), xytext=(8, 0),
-    #              xycoords=('axes fraction', 'data'), textcoords='offset points')
-    #
-    # # add text for both close prices
-    # plt.text(1.01, .875, f"Last Close: ${'%0.2f' % y_og_close_line.iloc[-1]}", transform=ax.transAxes)
-    # plt.text(1.01, .375, f"Last Close: ${'%0.2f' % y_scn_close_line.iloc[-1]}", transform=ax.transAxes)
-    #
-    #
-    # # add text for both annualized return percent
-    # plt.text(1.01, .825, f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
-    #          transform=ax.transAxes)
-    # plt.text(1.01, .325, f"Annualized Return %: {format(best_x_days_removed_scn.annualized_return_pct, '.2%')}",
-    #          transform=ax.transAxes)
+    # annotate starting price
+    # todo find a way to shift line to start slightly to the right so there will always be room to left of start line to add starting price
+    close_line_ax.annotate('$'+'%0.2f' % y_og_close_line.iloc[0], xy=(0, y_og_close_line.iloc[0]), xytext=(8, 0),
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+
+    # add text for both close prices
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.15, f"Last Close: ${'%0.2f' % y_og_close_line.iloc[-1]}", transform=close_line_ax.transAxes)
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.65, f"Last Close: ${'%0.2f' % y_scn_close_line.iloc[-1]}", transform=close_line_ax.transAxes)
+
+
+    # add text for both annualized return percent
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.22, f"Annualized Return %: {format(original_scn.annualized_return_pct, '.2%')}",
+             transform=close_line_ax.transAxes)
+    close_line_ax.text(bbox_to_anchor_value[0]+.01, bbox_to_anchor_value[1]-.72, f"Annualized Return %: {format(best_x_days_removed_scn.annualized_return_pct, '.2%')}",
+             transform=close_line_ax.transAxes)
 
     # format table axis
     # remove axis for table visual
